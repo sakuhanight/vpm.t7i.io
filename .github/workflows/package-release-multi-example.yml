@@ -1,0 +1,240 @@
+# 1リポジトリに複数パッケージがある場合のワークフロー例
+# このファイルを各パッケージリポジトリの .github/workflows/ にコピーしてください
+#
+# 使い方:
+# 1. packages 配列にすべてのパッケージ情報を追加
+# 2. git tag v1.0.0 && git push --tags を実行
+# → 自動的に全パッケージの ZIP作成 → GitHub Release → VPM登録 が完了
+#
+# タグ命名規則:
+# - 全パッケージ共通バージョン: v1.0.0
+# - 個別パッケージバージョン: package-a/v1.0.0, package-b/v2.0.0
+
+name: Build and Publish Multiple Packages to VPM
+
+on:
+  push:
+    tags:
+      - "v*.*.*" # 全パッケージ共通バージョン
+      - "*/v*.*.*" # 個別パッケージバージョン (例: package-a/v1.0.0)
+
+jobs:
+  detect-packages:
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.set-matrix.outputs.matrix }}
+      version: ${{ steps.version.outputs.version }}
+      tag: ${{ steps.version.outputs.tag }}
+      is_single_package: ${{ steps.detect.outputs.is_single_package }}
+      single_package_name: ${{ steps.detect.outputs.single_package_name }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set version from tag
+        id: version
+        run: |
+          TAG="${GITHUB_REF#refs/tags/}"
+          echo "tag=$TAG" >> $GITHUB_OUTPUT
+
+          # タグが package-name/v1.0.0 形式かチェック
+          if [[ "$TAG" =~ ^([^/]+)/v(.+)$ ]]; then
+            PACKAGE_NAME="${BASH_REMATCH[1]}"
+            VERSION="${BASH_REMATCH[2]}"
+            echo "Package-specific tag detected: $PACKAGE_NAME version $VERSION"
+            echo "version=$VERSION" >> $GITHUB_OUTPUT
+            echo "package_filter=$PACKAGE_NAME" >> $GITHUB_OUTPUT
+          else
+            VERSION="${TAG#v}"
+            echo "Common tag detected: version $VERSION"
+            echo "version=$VERSION" >> $GITHUB_OUTPUT
+            echo "package_filter=" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Detect target package
+        id: detect
+        run: |
+          PACKAGE_FILTER="${{ steps.version.outputs.package_filter }}"
+          if [ -n "$PACKAGE_FILTER" ]; then
+            echo "is_single_package=true" >> $GITHUB_OUTPUT
+            echo "single_package_name=$PACKAGE_FILTER" >> $GITHUB_OUTPUT
+          else
+            echo "is_single_package=false" >> $GITHUB_OUTPUT
+            echo "single_package_name=" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Set package matrix
+        id: set-matrix
+        run: |
+          # パッケージ情報の配列を定義
+          # id: ディレクトリ名またはパッケージ識別子
+          # path: Unity package.json へのパス
+
+          cat > packages.json <<'EOF'
+          {
+            "package": [
+              {
+                "id": "package-a",
+                "path": "Packages/io.t7i.package-a/package.json",
+                "dir": "Packages/io.t7i.package-a"
+              },
+              {
+                "id": "package-b",
+                "path": "Packages/io.t7i.package-b/package.json",
+                "dir": "Packages/io.t7i.package-b"
+              },
+              {
+                "id": "package-c",
+                "path": "Packages/io.t7i.package-c/package.json",
+                "dir": "Packages/io.t7i.package-c"
+              }
+            ]
+          }
+          EOF
+
+          PACKAGE_FILTER="${{ steps.version.outputs.package_filter }}"
+
+          if [ -n "$PACKAGE_FILTER" ]; then
+            # 特定のパッケージのみ
+            FILTERED=$(jq --arg filter "$PACKAGE_FILTER" \
+              '{package: [.package[] | select(.id == $filter)]}' packages.json)
+            echo "matrix=$FILTERED" >> $GITHUB_OUTPUT
+          else
+            # 全パッケージ
+            echo "matrix=$(cat packages.json)" >> $GITHUB_OUTPUT
+          fi
+
+  build-and-release:
+    needs: detect-packages
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    strategy:
+      matrix: ${{ fromJson(needs.detect-packages.outputs.matrix) }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Parse Unity package.json
+        id: package
+        run: |
+          PACKAGE_JSON="${{ matrix.package.path }}"
+
+          PACKAGE_NAME=$(jq -r '.name' "$PACKAGE_JSON")
+          DISPLAY_NAME=$(jq -r '.displayName' "$PACKAGE_JSON")
+          DESCRIPTION=$(jq -r '.description // ""' "$PACKAGE_JSON")
+          AUTHOR=$(jq -c '.author // "sakuhanight"' "$PACKAGE_JSON")
+          UNITY=$(jq -r '.unity // ""' "$PACKAGE_JSON")
+          LICENSE=$(jq -r '.license // ""' "$PACKAGE_JSON")
+          VPM_DEPS=$(jq -c '.vpmDependencies // {}' "$PACKAGE_JSON")
+
+          echo "name=$PACKAGE_NAME" >> $GITHUB_OUTPUT
+          echo "display_name=$DISPLAY_NAME" >> $GITHUB_OUTPUT
+          echo "description=$DESCRIPTION" >> $GITHUB_OUTPUT
+          echo "author=$AUTHOR" >> $GITHUB_OUTPUT
+          echo "unity=$UNITY" >> $GITHUB_OUTPUT
+          echo "license=$LICENSE" >> $GITHUB_OUTPUT
+          echo "vpm_dependencies=$VPM_DEPS" >> $GITHUB_OUTPUT
+
+      - name: Create package ZIP
+        id: zip
+        run: |
+          PACKAGE_DIR="${{ matrix.package.dir }}"
+          PACKAGE_ID="${{ matrix.package.id }}"
+          TAG="${{ needs.detect-packages.outputs.tag }}"
+
+          # ZIPファイル名を生成
+          ZIP_NAME="${PACKAGE_ID}-${TAG}.zip"
+
+          cd "$PACKAGE_DIR"
+
+          # 不要なファイルを除外してZIP作成
+          zip -r "../../$ZIP_NAME" . \
+            -x '*.git*' \
+            -x '*.DS_Store' \
+            -x '*~' \
+            -x '*.meta.bak'
+
+          cd ../..
+
+          echo "zip_name=$ZIP_NAME" >> $GITHUB_OUTPUT
+
+          # ZIP情報を表示
+          ls -lh "$ZIP_NAME"
+          unzip -l "$ZIP_NAME" | head -20
+
+      - name: Calculate SHA256
+        id: sha256
+        run: |
+          ZIP_NAME="${{ steps.zip.outputs.zip_name }}"
+          SHA256=$(sha256sum "$ZIP_NAME" | awk '{print $1}')
+          echo "hash=$SHA256" >> $GITHUB_OUTPUT
+          echo "SHA256 for $ZIP_NAME: $SHA256"
+
+      - name: Upload to existing release or create new one
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ needs.detect-packages.outputs.tag }}
+          name: Release ${{ needs.detect-packages.outputs.tag }}
+          draft: false
+          prerelease: false
+          generate_release_notes: true
+          files: |
+            ${{ steps.zip.outputs.zip_name }}
+          fail_on_unmatched_files: true
+
+  publish-to-vpm:
+    needs: [detect-packages, build-and-release]
+    runs-on: ubuntu-latest
+    strategy:
+      matrix: ${{ fromJson(needs.detect-packages.outputs.matrix) }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Parse Unity package.json
+        id: package
+        run: |
+          PACKAGE_JSON="${{ matrix.package.path }}"
+
+          PACKAGE_NAME=$(jq -r '.name' "$PACKAGE_JSON")
+          DISPLAY_NAME=$(jq -r '.displayName' "$PACKAGE_JSON")
+          DESCRIPTION=$(jq -r '.description // ""' "$PACKAGE_JSON")
+          AUTHOR=$(jq -c '.author // "sakuhanight"' "$PACKAGE_JSON")
+          UNITY=$(jq -r '.unity // ""' "$PACKAGE_JSON")
+          LICENSE=$(jq -r '.license // ""' "$PACKAGE_JSON")
+          VPM_DEPS=$(jq -c '.vpmDependencies // {}' "$PACKAGE_JSON")
+
+          echo "name=$PACKAGE_NAME" >> $GITHUB_OUTPUT
+          echo "display_name=$DISPLAY_NAME" >> $GITHUB_OUTPUT
+          echo "description=$DESCRIPTION" >> $GITHUB_OUTPUT
+          echo "author=$AUTHOR" >> $GITHUB_OUTPUT
+          echo "unity=$UNITY" >> $GITHUB_OUTPUT
+          echo "license=$LICENSE" >> $GITHUB_OUTPUT
+          echo "vpm_dependencies=$VPM_DEPS" >> $GITHUB_OUTPUT
+
+      - name: Call VPM update workflow
+        uses: benc-uk/workflow-dispatch@v1
+        with:
+          workflow: update-package.yml
+          repo: sakuhanight/vpm.t7i.io
+          ref: main
+          token: ${{ secrets.GITHUB_TOKEN }}
+          inputs: |
+            {
+              "package_name": "${{ steps.package.outputs.name }}",
+              "package_display_name": "${{ steps.package.outputs.display_name }}",
+              "package_version": "${{ needs.detect-packages.outputs.version }}",
+              "release_url": "https://github.com/${{ github.repository }}/releases/download/${{ needs.detect-packages.outputs.tag }}/${{ matrix.package.id }}-${{ needs.detect-packages.outputs.tag }}.zip",
+              "package_description": "${{ steps.package.outputs.description }}",
+              "package_author": "${{ steps.package.outputs.author }}",
+              "unity_version": "${{ steps.package.outputs.unity }}",
+              "license": "${{ steps.package.outputs.license }}",
+              "homepage": "https://github.com/${{ github.repository }}",
+              "documentation_url": "https://github.com/${{ github.repository }}/wiki",
+              "changelog_url": "https://github.com/${{ github.repository }}/releases",
+              "repository": "{\"type\": \"git\", \"url\": \"https://github.com/${{ github.repository }}.git\"}",
+              "vpm_dependencies": "${{ steps.package.outputs.vpm_dependencies }}"
+            }

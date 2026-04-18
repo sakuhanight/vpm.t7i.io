@@ -1,0 +1,47 @@
+name: Update VPM Repository
+
+on:
+  repository_dispatch:
+    types: [package-update]
+
+concurrency:
+  group: vpm-update
+  cancel-in-progress: false
+
+jobs:
+  update-vpm:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Save package JSON
+        run: |
+          PACKAGE_NAME="${{ github.event.client_payload.package.name }}"
+          mkdir -p packages
+          echo '${{ toJson(github.event.client_payload.package) }}' > "packages/${PACKAGE_NAME}.json"
+
+      - name: Generate VPM repository
+        run: npm run dev vpm.json
+
+      - name: Generate HTML page
+        run: npm run generate-html vpm.json index.html
+
+      - name: Commit and push changes
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add packages/ vpm.json index.html
+          git commit -m "Update package: ${{ github.event.client_payload.package.name }}@${{ github.event.client_payload.package.version }}" || echo "No changes to commit"
+          git push
