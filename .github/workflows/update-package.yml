@@ -79,6 +79,8 @@ jobs:
     steps:
       - name: Checkout vpm.t7i.io repository
         uses: actions/checkout@v4
+        with:
+          repository: sakuhanight/vpm.t7i.io
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
