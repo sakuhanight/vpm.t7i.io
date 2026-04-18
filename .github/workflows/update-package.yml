@@ -127,7 +127,7 @@ jobs:
         run: npm run dev vpm.json
 
       - name: Generate HTML page
-        run: npm run generate-html vpm.json index.html
+        run: npm run generate-html vpm.json index.html src/templates/default.html
 
       - name: Commit and push changes
         run: |

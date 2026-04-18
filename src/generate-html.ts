@@ -368,12 +368,22 @@ async function generateHTML(options: GenerateHTMLOptions): Promise<void> {
   if (templatePath) {
     console.log(`Using custom template from ${templatePath}`);
     const template = await readFile(templatePath, 'utf-8');
-    // Simple template variable replacement
+
+    const packageCount = Object.keys(vpm.packages).length;
+    const totalVersions = Object.values(vpm.packages).reduce(
+      (sum, pkg) => sum + Object.keys(pkg.versions).length,
+      0
+    );
+
+    // Template variable replacement
     html = template
       .replace(/\{\{name\}\}/g, vpm.name)
       .replace(/\{\{author\}\}/g, vpm.author)
       .replace(/\{\{url\}\}/g, vpm.url)
-      .replace(/\{\{packages\}\}/g, JSON.stringify(vpm.packages, null, 2));
+      .replace(/\{\{packageCount\}\}/g, String(packageCount))
+      .replace(/\{\{totalVersions\}\}/g, String(totalVersions))
+      .replace(/\{\{timestamp\}\}/g, new Date().toISOString())
+      .replace(/\{\{packagesJson\}\}/g, JSON.stringify(vpm.packages, null, 2));
   } else {
     console.log('Generating HTML with default template');
     html = generateDefaultHTML(vpm);

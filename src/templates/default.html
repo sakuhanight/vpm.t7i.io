@@ -3,7 +3,7 @@
     <head>
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>朔日工房 - VPM Repository</title>
+        <title>{{name}} - VPM Repository</title>
         <script src="https://cdn.tailwindcss.com"></script>
         <script>
             tailwind.config = {
@@ -22,9 +22,9 @@
         <div class="container mx-auto px-4 py-8 max-w-7xl">
             <!-- Header -->
             <header class="bg-white rounded-xl shadow-lg p-8 mb-8">
-                <h1 class="text-4xl font-bold text-primary mb-2">朔日工房</h1>
+                <h1 class="text-4xl font-bold text-primary mb-2">{{name}}</h1>
                 <p class="text-xl text-gray-600 mb-4">
-                    VPM Package Repository by sakuhanight
+                    VPM Package Repository by {{author}}
                 </p>
 
                 <div
@@ -33,7 +33,7 @@
                     <div class="font-bold text-primary mb-2">
                         📦 VPM Repository URL:
                     </div>
-                    <code class="text-sm break-all">https://vpm.t7i.io/vpm.json</code>
+                    <code class="text-sm break-all">{{url}}</code>
                 </div>
 
                 <div
@@ -41,13 +41,13 @@
                 >
                     <div class="flex items-center gap-2">
                         <span class="text-3xl font-bold text-primary"
-                            >0</span
+                            >{{packageCount}}</span
                         >
                         <span class="text-gray-600">パッケージ</span>
                     </div>
                     <div class="flex items-center gap-2">
                         <span class="text-3xl font-bold text-primary"
-                            >0</span
+                            >{{totalVersions}}</span
                         >
                         <span class="text-gray-600">総バージョン数</span>
                     </div>
@@ -64,12 +64,12 @@
 
             <!-- Footer -->
             <footer class="text-center mt-12 text-white">
-                <p class="text-sm opacity-80">Generated at 2026-04-18T14:15:16.737Z</p>
+                <p class="text-sm opacity-80">Generated at {{timestamp}}</p>
             </footer>
         </div>
 
         <script>
-            const packages = {};
+            const packages = {{packagesJson}};
             const packagesContainer = document.getElementById('packages');
 
             Object.entries(packages).forEach(([name, pkgIndex]) => {
