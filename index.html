@@ -24,7 +24,7 @@
             <header class="bg-white rounded-xl shadow-lg p-8 mb-8">
                 <h1 class="text-4xl font-bold text-primary mb-2">朔日工房</h1>
                 <p class="text-xl text-gray-600 mb-4">
-                    VPM Package Repository by sakuhanight
+                    VPM Package Repository by 朔日工房
                 </p>
 
                 <div
@@ -41,13 +41,13 @@
                 >
                     <div class="flex items-center gap-2">
                         <span class="text-3xl font-bold text-primary"
-                            >0</span
+                            >1</span
                         >
                         <span class="text-gray-600">パッケージ</span>
                     </div>
                     <div class="flex items-center gap-2">
                         <span class="text-3xl font-bold text-primary"
-                            >0</span
+                            >1</span
                         >
                         <span class="text-gray-600">総バージョン数</span>
                     </div>
@@ -64,12 +64,30 @@
 
             <!-- Footer -->
             <footer class="text-center mt-12 text-white">
-                <p class="text-sm opacity-80">Generated at 2026-04-18T14:15:16.737Z</p>
+                <p class="text-sm opacity-80">Generated at 2026-04-19T09:21:55.811Z</p>
             </footer>
         </div>
 
         <script>
-            const packages = {};
+            const packages = {
+  "net.tsuitachi.sf-equipment": {
+    "versions": {
+      "0.1.0": {
+        "name": "net.tsuitachi.sf-equipment",
+        "displayName": "Tsuitachi-SF-Equipment",
+        "version": "0.1.0",
+        "url": "https://github.com/sakuhanight/Tsuitachi-SF-Equipment/releases/download/v0.1.0/Tsuitachi-SF-Equipment-v0.1.0.zip",
+        "author": "sakuhanight",
+        "description": "Advanced equipment for SaccFlightAndVehicles 1.8",
+        "unity": "2022.3",
+        "documentationUrl": "https://github.com/sakuhanight/Tsuitachi-SF-Equipment/wiki",
+        "changelogUrl": "https://github.com/sakuhanight/Tsuitachi-SF-Equipment/releases",
+        "license": "MIT",
+        "homepage": "https://github.com/sakuhanight/Tsuitachi-SF-Equipment"
+      }
+    }
+  }
+};
             const packagesContainer = document.getElementById('packages');
 
             Object.entries(packages).forEach(([name, pkgIndex]) => {

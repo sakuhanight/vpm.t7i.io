@@ -1,0 +1,13 @@
+{
+  "name": "net.tsuitachi.sf-equipment",
+  "displayName": "Tsuitachi-SF-Equipment",
+  "version": "0.1.0",
+  "url": "https://github.com/sakuhanight/Tsuitachi-SF-Equipment/releases/download/v0.1.0/Tsuitachi-SF-Equipment-v0.1.0.zip",
+  "author": "sakuhanight",
+  "description": "Advanced equipment for SaccFlightAndVehicles 1.8",
+  "unity": "2022.3",
+  "license": "MIT",
+  "homepage": "https://github.com/sakuhanight/Tsuitachi-SF-Equipment",
+  "documentationUrl": "https://github.com/sakuhanight/Tsuitachi-SF-Equipment/wiki",
+  "changelogUrl": "https://github.com/sakuhanight/Tsuitachi-SF-Equipment/releases"
+}
