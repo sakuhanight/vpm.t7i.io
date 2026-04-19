@@ -1,7 +1,7 @@
 {
   "name": "vpm.t7i.io",
   "version": "1.0.0",
-  "description": "朔日工房 VPM Repository",
+  "description": "Tsuitachi Studio VPM Repository",
   "type": "module",
   "scripts": {
     "build": "tsc",
@@ -16,7 +16,7 @@
     "vpm",
     "vrchat"
   ],
-  "author": "朔日工房",
+  "author": "Tsuitachi Studio",
   "license": "MIT",
   "devDependencies": {
     "@inquirer/prompts": "^8.4.1",

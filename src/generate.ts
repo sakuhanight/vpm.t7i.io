@@ -82,8 +82,8 @@ async function generateVPMRepo(
   existingVpmPath?: string
 ): Promise<VPMRepository> {
   const {
-    author = '朔日工房',
-    name = '朔日工房',
+    author = 'Tsuitachi Studio',
+    name = 'Tsuitachi Studio',
     id = 'io.t7i',
     url = 'https://vpm.t7i.io/vpm.json',
   } = options;

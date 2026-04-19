@@ -1,6 +1,6 @@
 ﻿# vpm.t7i.io
 
-朔日工房VPMリポジトリ
+Tsuitachi Studio VPM Repository
 
 ## Workflow
 
