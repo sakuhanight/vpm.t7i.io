@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="ja">
+<html lang="ja" class="dark">
     <head>
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -7,69 +7,76 @@
         <script src="https://cdn.tailwindcss.com"></script>
         <script>
             tailwind.config = {
+                darkMode: 'class',
                 theme: {
                     extend: {
                         colors: {
-                            primary: "#667eea",
-                            secondary: "#764ba2",
+                            primary: "#3b82f6",
+                            "primary-hover": "#2563eb",
+                            secondary: "#06b6d4",
+                            dark: {
+                                bg: "#0a0a0a",
+                                card: "#1a1a1a",
+                                border: "#2a2a2a",
+                            },
                         },
                     },
                 },
             };
         </script>
     </head>
-    <body class="bg-gradient-to-br from-primary to-secondary min-h-screen">
+    <body class="bg-dark-bg text-gray-100 min-h-screen">
         <div class="container mx-auto px-4 py-8 max-w-7xl">
             <!-- Header -->
-            <header class="bg-white rounded-xl shadow-lg p-8 mb-8">
-                <h1 class="text-4xl font-bold text-primary mb-2">{{name}}</h1>
-                <p class="text-xl text-gray-600 mb-4">
-                    VPM Package Repository by {{author}}
-                </p>
-
-                <div
-                    class="bg-gray-50 border-l-4 border-primary rounded-lg p-4 mt-6"
-                >
-                    <div class="font-bold text-primary mb-2">
-                        📦 VPM Repository URL:
+            <header class="bg-dark-card border border-dark-border rounded-xl p-8 mb-8">
+                <div class="flex items-center justify-between mb-6">
+                    <div>
+                        <h1 class="text-4xl font-bold text-white mb-2">{{name}}</h1>
+                        <p class="text-lg text-gray-400">
+                            VPM Package Repository by {{author}}
+                        </p>
                     </div>
-                    <code class="text-sm break-all">{{url}}</code>
+                    <a href="vcc://vpm/addRepo?url={{url}}"
+                       class="bg-primary hover:bg-primary-hover text-white px-6 py-3 rounded-lg font-semibold transition-colors duration-200 flex items-center gap-2 shadow-lg">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                        </svg>
+                        VCCへ追加
+                    </a>
                 </div>
 
-                <div
-                    class="flex flex-wrap gap-8 mt-6 pt-6 border-t border-gray-200"
-                >
-                    <div class="flex items-center gap-2">
-                        <span class="text-3xl font-bold text-primary"
-                            >{{packageCount}}</span
-                        >
-                        <span class="text-gray-600">パッケージ</span>
+                <div class="bg-dark-bg border border-dark-border rounded-lg p-4">
+                    <div class="text-sm text-gray-500 mb-2">📦 VPM Repository URL:</div>
+                    <code class="text-sm text-gray-300 break-all">{{url}}</code>
+                </div>
+
+                <div class="flex flex-wrap gap-8 mt-6 pt-6 border-t border-dark-border">
+                    <div class="flex items-center gap-3">
+                        <div class="text-4xl font-bold text-primary">{{packageCount}}</div>
+                        <div class="text-gray-400">パッケージ</div>
                     </div>
-                    <div class="flex items-center gap-2">
-                        <span class="text-3xl font-bold text-primary"
-                            >{{totalVersions}}</span
-                        >
-                        <span class="text-gray-600">総バージョン数</span>
+                    <div class="flex items-center gap-3">
+                        <div class="text-4xl font-bold text-secondary">{{totalVersions}}</div>
+                        <div class="text-gray-400">総バージョン数</div>
                     </div>
                 </div>
             </header>
 
             <!-- Packages Grid -->
-            <div
-                id="packages"
-                class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
-            >
+            <div id="packages" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 <!-- Packages will be inserted here -->
             </div>
 
             <!-- Footer -->
-            <footer class="text-center mt-12 text-white">
-                <p class="text-sm opacity-80">Generated at {{timestamp}}</p>
+            <footer class="text-center mt-12 text-gray-500 text-sm">
+                <p>Powered by VPM (VRChat Package Manager)</p>
+                <p class="mt-1 opacity-70">Generated at {{timestamp}}</p>
             </footer>
         </div>
 
         <script>
             const packages = {{packagesJson}};
+            const vpmUrl = "{{url}}";
             const packagesContainer = document.getElementById('packages');
 
             Object.entries(packages).forEach(([name, pkgIndex]) => {
@@ -79,39 +86,47 @@
               const allVersions = versions.map(([v]) => v).reverse();
 
               const card = document.createElement('div');
-              card.className = 'bg-white rounded-xl shadow-lg p-6 transition-all duration-200 hover:-translate-y-2 hover:shadow-xl';
+              card.className = 'bg-dark-card border border-dark-border rounded-xl p-6 transition-all duration-200 hover:border-primary hover:shadow-lg hover:shadow-primary/10';
 
               card.innerHTML = `
-                <div class="border-b-2 border-gray-100 pb-4 mb-4">
-                  <h2 class="text-2xl font-bold text-gray-800 mb-1">${pkg.displayName}</h2>
-                  <p class="text-sm text-gray-500 font-mono">${pkg.name}</p>
-                  <span class="inline-block bg-primary text-white px-3 py-1 rounded-full text-sm font-bold mt-2">
+                <div class="border-b border-dark-border pb-4 mb-4">
+                  <h2 class="text-2xl font-bold text-white mb-2">${pkg.displayName}</h2>
+                  <p class="text-sm text-gray-500 font-mono mb-3">${pkg.name}</p>
+                  <span class="inline-block bg-primary/20 text-primary border border-primary/30 px-3 py-1 rounded-full text-sm font-semibold">
                     v${latestVersion}
                   </span>
                 </div>
 
-                ${pkg.description ? `<p class="text-gray-600 mb-4 leading-relaxed">${pkg.description}</p>` : ''}
+                ${pkg.description ? `<p class="text-gray-400 mb-4 leading-relaxed">${pkg.description}</p>` : ''}
 
-                <div class="flex flex-wrap gap-3 mb-4 text-sm text-gray-600">
-                  <div class="flex items-center gap-1">
-                    <span>👤</span>
+                <div class="flex flex-wrap gap-3 mb-4 text-sm text-gray-500">
+                  <div class="flex items-center gap-1.5">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                    </svg>
                     <span>${authorName}</span>
                   </div>
                   ${pkg.license ? `
-                    <div class="flex items-center gap-1">
-                      <span>📄</span>
+                    <div class="flex items-center gap-1.5">
+                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                      </svg>
                       <span>${pkg.license}</span>
                     </div>
                   ` : ''}
                   ${pkg.unity ? `
-                    <div class="flex items-center gap-1">
-                      <span>🎮</span>
+                    <div class="flex items-center gap-1.5">
+                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+                      </svg>
                       <span>Unity ${pkg.unity}+</span>
                     </div>
                   ` : ''}
                   ${allVersions.length > 1 ? `
-                    <div class="flex items-center gap-1">
-                      <span>📚</span>
+                    <div class="flex items-center gap-1.5">
+                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path>
+                      </svg>
                       <span>${allVersions.length} versions</span>
                     </div>
                   ` : ''}
@@ -119,22 +134,31 @@
 
                 <div class="flex flex-wrap gap-2">
                   <a href="${pkg.url}"
-                     class="bg-primary hover:bg-blue-600 text-white px-4 py-2 rounded-lg transition-colors duration-200 text-sm font-medium"
+                     class="bg-primary hover:bg-primary-hover text-white px-4 py-2 rounded-lg transition-colors duration-200 text-sm font-medium inline-flex items-center gap-2"
                      download>
-                    ⬇️ Download
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+                    </svg>
+                    Download
                   </a>
                   ${pkg.documentationUrl ? `
                     <a href="${pkg.documentationUrl}"
-                       class="bg-gray-100 hover:bg-gray-200 text-gray-800 px-4 py-2 rounded-lg transition-colors duration-200 text-sm font-medium"
+                       class="bg-dark-bg border border-dark-border hover:border-primary text-gray-300 hover:text-white px-4 py-2 rounded-lg transition-colors duration-200 text-sm font-medium inline-flex items-center gap-2"
                        target="_blank">
-                      📖 Docs
+                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
+                      </svg>
+                      Docs
                     </a>
                   ` : ''}
                   ${pkg.homepage ? `
                     <a href="${pkg.homepage}"
-                       class="bg-gray-100 hover:bg-gray-200 text-gray-800 px-4 py-2 rounded-lg transition-colors duration-200 text-sm font-medium"
+                       class="bg-dark-bg border border-dark-border hover:border-secondary text-gray-300 hover:text-white px-4 py-2 rounded-lg transition-colors duration-200 text-sm font-medium inline-flex items-center gap-2"
                        target="_blank">
-                      🏠 Homepage
+                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
+                      </svg>
+                      Homepage
                     </a>
                   ` : ''}
                 </div>
@@ -146,10 +170,17 @@
             // Show message if no packages
             if (Object.keys(packages).length === 0) {
               packagesContainer.innerHTML = `
-                <div class="col-span-full bg-white rounded-xl shadow-lg p-12 text-center">
-                  <div class="text-6xl mb-4">📦</div>
-                  <h3 class="text-2xl font-bold text-gray-800 mb-2">パッケージがまだありません</h3>
-                  <p class="text-gray-600">最初のパッケージがリリースされるまでお待ちください。</p>
+                <div class="col-span-full bg-dark-card border border-dark-border rounded-xl p-12 text-center">
+                  <div class="text-6xl mb-4 opacity-50">📦</div>
+                  <h3 class="text-2xl font-bold text-white mb-2">パッケージがまだありません</h3>
+                  <p class="text-gray-400 mb-6">最初のパッケージがリリースされるまでお待ちください。</p>
+                  <a href="vcc://vpm/addRepo?url=${vpmUrl}"
+                     class="inline-flex items-center gap-2 bg-primary hover:bg-primary-hover text-white px-6 py-3 rounded-lg font-semibold transition-colors duration-200">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                    </svg>
+                    VCCへ追加
+                  </a>
                 </div>
               `;
             }
