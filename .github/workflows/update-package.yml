@@ -69,6 +69,10 @@ on:
         required: false
         type: string
         default: ''
+    secrets:
+      VPM_REPO_TOKEN:
+        description: 'Personal Access Token with write access to vpm.t7i.io repository'
+        required: true
 
 jobs:
   update-vpm:
@@ -81,7 +85,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: sakuhanight/vpm.t7i.io
-          token: ${{ github.token }}
+          token: ${{ secrets.VPM_REPO_TOKEN }}
           persist-credentials: true
 
       - name: Setup Node.js
