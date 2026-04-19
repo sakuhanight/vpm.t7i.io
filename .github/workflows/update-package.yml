@@ -81,6 +81,17 @@ jobs:
       contents: write
 
     steps:
+      - name: Debug token availability
+        run: |
+          if [ -z "$VPM_TOKEN" ]; then
+            echo "ERROR: VPM_REPO_TOKEN is empty or not set"
+            exit 1
+          else
+            echo "VPM_REPO_TOKEN is set (length: ${#VPM_TOKEN})"
+          fi
+        env:
+          VPM_TOKEN: ${{ secrets.VPM_REPO_TOKEN }}
+
       - name: Checkout vpm.t7i.io repository
         uses: actions/checkout@v4
         with:
